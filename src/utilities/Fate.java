@@ -1,6 +1,5 @@
 /**
  * @author Noam Karasso
- * @id 209406867
  */
 
 package utilities;
@@ -14,8 +13,12 @@ public class Fate {
 
 	private static Random rand = new Random();
 
+	public static boolean disable() {
+		return rand.nextInt(10) > 7;
+	}
+	
 	public static boolean breakDown() {
-		return rand.nextBoolean();
+		return rand.nextInt(10) > 7;
 	}
 
 	public static boolean generateFixable() {

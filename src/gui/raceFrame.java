@@ -1,6 +1,5 @@
 /**
  * @author Noam Karasso
- * @id 209406867
  */
 
 package gui;
@@ -9,16 +8,18 @@ import java.awt.*;
 import java.awt.event.*;
 import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
-
 import javax.swing.*;
-
+import factory.ArenaFactory;
+import factory.CarRaceBuilder;
 import factory.RaceBuilder;
+import factory.RaceEngineer;
 import game.arenas.Arena;
 import game.arenas.exceptions.RacerLimitException;
 import game.arenas.exceptions.RacerTypeException;
+import game.race.Race;
 import game.racers.Racer;
 import utilities.EnumContainer.Color;
-import factory.vehicleWorkshop;
+import factory.VehicleWorkshop;
 
 /**
  *The raceFrame class extends JFrame and implements ActionListener to create a GUI for a racing game
@@ -39,7 +40,7 @@ class raceFrame extends JFrame implements ActionListener {
 	private static final int MIN_RACERS = 1;
 	private static final int MAX_LENGTH = 3000;
 	private static final int MIN_LENGTH = 100;
-	private static final int INFO_COLUMNS = 5;
+	private static final int INFO_COLUMNS = 6;
 
 	private int windowWidth;
 	private int windowHeight;
@@ -49,7 +50,8 @@ class raceFrame extends JFrame implements ActionListener {
 	private JTextField text_rName;
 	private JTextField text_maxSpeed;
 	private JTextField text_acceleration;
-
+	private JTextField text_nofRacers;
+	
 	private JComboBox<String> combo_arenas;
 	private JComboBox<String> combo_racers;
 	private JComboBox<String> combo_colors;
@@ -60,8 +62,10 @@ class raceFrame extends JFrame implements ActionListener {
 
 	private int maxRacers;
 	private int nofRacers;
-
-	private vehicleWorkshop vehicleWS;
+	
+	private ArenaFactory AF;
+	private VehicleWorkshop vehicleWS;
+	
 	private Dimension dimension;
 
 	private Arena arena = null;
@@ -83,11 +87,12 @@ class raceFrame extends JFrame implements ActionListener {
 		windowWidth = DEFAULT_WIDTH;
 		windowHeight = DEFAULT_HEIGHT;
 		nofRacers = 0;
-		
+		//racers = new ArrayList<Racer>();
 		arenaBuilt = false;
 		raceStarted = false;
 		raceFinished = false;
-		vehicleWS = new vehicleWorkshop();
+		AF = new ArenaFactory();
+		vehicleWS = new VehicleWorkshop();
 		ImageIcon img = new ImageIcon(new ImageIcon("icons/java.png").getImage().getScaledInstance(ICON_SIZE, ICON_SIZE, Image.SCALE_DEFAULT));
 		setIconImage(img.getImage());
 		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
@@ -160,100 +165,124 @@ class raceFrame extends JFrame implements ActionListener {
 
 		// ADD ARENA PART
 		JLabel label1 = new JLabel("Choose arena:");
-		label1.setBounds(10, 20, 100, 10);
+		label1.setBounds(10, 10, 100, 10);
 		cPanel.add(label1);
 
-		String arenas[] = { "AerialArena", "LandArena", "NavalArena" };
+		String arenas[] = { "Air", "Land", "Naval" };
 		combo_arenas = new JComboBox<>(arenas);
-		combo_arenas.setBounds(10, 40, 100, 20);
+		combo_arenas.setBounds(10, 25, 100, 20);
 		cPanel.add(combo_arenas);
 
 		JLabel label2 = new JLabel("Arena length:");
-		label2.setBounds(10, 70, 100, 10);
+		label2.setBounds(10, 50, 100, 10);
 		cPanel.add(label2);
 
 		text_length = new JTextField("" + DEFAULT_WIDTH);
-		text_length.setBounds(10, 90, 50, 20);
+		text_length.setBounds(10, 65, 50, 20);
 		cPanel.add(text_length);
 
 		JLabel label3 = new JLabel("Max racers number:");
-		label3.setBounds(10, 120, 150, 10);
+		label3.setBounds(10, 90, 150, 10);
 		cPanel.add(label3);
 
 		text_maxRacers = new JTextField("" + maxRacers);
-		text_maxRacers.setBounds(10, 140, 50, 20);
+		text_maxRacers.setBounds(10, 105, 50, 20);
 		cPanel.add(text_maxRacers);
 
 		JButton button = new JButton("Build arena");
 		button.addActionListener(this);
-		button.setBounds(10, 170, 100, 30);
+		button.setBounds(10, 130, 100, 30);
 		cPanel.add(button);
 
 		JSeparator sep = new JSeparator(SwingConstants.HORIZONTAL);
-		sep.setBounds(0, 210, 150, 10);
+		sep.setBounds(0, 165, 150, 10);
 		cPanel.add(sep, BorderLayout.CENTER);
 
 		// ADD RACER PART
 		JLabel label4 = new JLabel("Choose racer:");
-		label4.setBounds(10, 230, 100, 10);
+		label4.setBounds(10, 180, 100, 10);
 		cPanel.add(label4);
 
 		String racers[] = { "Airplane", "Helicopter", "Bicycle", "Car", "Horse", "RowBoat", "SpeedBoat" };
 		combo_racers = new JComboBox<>(racers);
-		combo_racers.setBounds(10, 250, 100, 20);
+		combo_racers.setBounds(10, 195, 100, 20);
 		cPanel.add(combo_racers);
 
 		JLabel label5 = new JLabel("Choose color:");
-		label5.setBounds(10, 280, 100, 10);
+		label5.setBounds(10, 220, 100, 10);
 		cPanel.add(label5);
 
 		String colors[] = { "Black", "Blue", "Green", "Red", "Yellow" };
 		combo_colors = new JComboBox<>(colors);
-		combo_colors.setBounds(10, 300, 100, 20);
+		combo_colors.setBounds(10, 235, 100, 20);
 		cPanel.add(combo_colors);
 
 		JLabel label6 = new JLabel("Racer name:");
-		label6.setBounds(10, 330, 100, 10);
+		label6.setBounds(10, 260, 100, 10);
 		cPanel.add(label6);
 
 		text_rName = new JTextField();
-		text_rName.setBounds(10, 350, 50, 20);
+		text_rName.setBounds(10, 275, 50, 20);
 		cPanel.add(text_rName);
 
 		JLabel label7 = new JLabel("Max speed:");
-		label7.setBounds(10, 380, 100, 10);
+		label7.setBounds(10, 300, 100, 10);
 		cPanel.add(label7);
 
 		text_maxSpeed = new JTextField();
-		text_maxSpeed.setBounds(10, 400, 50, 20);
+		text_maxSpeed.setBounds(10, 315, 50, 20);
 		cPanel.add(text_maxSpeed);
 
 		JLabel label8 = new JLabel("Acceleration:");
-		label8.setBounds(10, 430, 100, 10);
+		label8.setBounds(10, 340, 100, 10);
 		cPanel.add(label8);
 
 		text_acceleration = new JTextField();
-		text_acceleration.setBounds(10, 450, 50, 20);
+		text_acceleration.setBounds(10, 355, 50, 20);
 		cPanel.add(text_acceleration);
 
 		JButton button1 = new JButton("Add racer");
 		button1.addActionListener(this);
-		button1.setBounds(10, 480, 110, 30);
+		button1.setBounds(10, 380, 110, 30);
 		cPanel.add(button1);
 		
 		JButton button4 = new JButton("Copy racers");
 		button4.addActionListener(this);
-		button4.setBounds(10, 520, 110, 30);
+		button4.setBounds(10, 415, 110, 30);
 		cPanel.add(button4);
 
 		JSeparator sep2 = new JSeparator(SwingConstants.HORIZONTAL);
-		sep2.setBounds(0, 570, 150, 10);
+		sep2.setBounds(0, 450, 150, 10);
 		cPanel.add(sep2, BorderLayout.SOUTH);
+		// ADD BUILDER PART
+		
+		JLabel label9 = new JLabel("Instant car race");
+		label9.setBounds(5, 460, 130, 10);
+		label9.setFont(new Font("Arial", Font.BOLD, 15)); // Set the font, style, and size
+		label9.setForeground(java.awt.Color.BLUE);
+		cPanel.add(label9);
 
+		JLabel label10 = new JLabel("Num of racers:");
+		label10.setBounds(10, 485, 100, 10);
+		cPanel.add(label10);
+		
+		text_nofRacers = new JTextField();
+		text_nofRacers.setBounds(10, 500, 50, 20);
+		cPanel.add(text_nofRacers);
+		
+		JButton button5 = new JButton("Build car race");
+		button5.addActionListener(this);
+		button5.setBounds(10, 525, 120, 30);
+		cPanel.add(button5);
+		
+		JSeparator sep3 = new JSeparator(SwingConstants.HORIZONTAL);
+		sep3.setBounds(0, 570, 150, 10);
+		cPanel.add(sep3, BorderLayout.SOUTH);
+		
 		// ADD BOTTOM PART
 		JButton button2 = new JButton("Start race");
 		button2.addActionListener(this);
-		button2.setBounds(10, 580, 100, 30);
+		button2.setBounds(10, 585, 100, 30);
 		cPanel.add(button2);
 
 		JButton button3 = new JButton("Show info");
@@ -291,7 +320,67 @@ class raceFrame extends JFrame implements ActionListener {
 			
 		case "Copy racers":
 			copyRacers();
+			break;
+			
+		case "Build car race":
+			buildCarRace();
 		}
+	}
+	
+	/**
+	 * Builds a car race based on the user input and constructs the race with 'Land' arena and default cars
+	 * It validates the input, checks if the race has already started, and handles exceptions during the process
+	 */
+	private void buildCarRace() {
+		int nof_racers;
+		try {
+			nof_racers = Integer.parseInt(text_nofRacers.getText());
+		} catch (NumberFormatException | NullPointerException ex) {
+			System.out.println("Given String is not parsable to int");
+			JOptionPane.showMessageDialog(this, "nof_racers must be a number!");
+			return;
+		}
+		;
+		if (raceStarted == true) {
+			JOptionPane.showMessageDialog(this, "Race already started!");
+			return;
+		} else if (nof_racers > MAX_RACERS || nof_racers < MIN_RACERS) {
+			JOptionPane.showMessageDialog(this, "Invalid input values! Please try again.");
+			return;
+		}
+		//try building arena
+			try {
+				CarRaceBuilder crBuilder = new CarRaceBuilder();
+				RaceEngineer raceE = new RaceEngineer(crBuilder);
+				raceE.constructRace(nof_racers);
+				Race race = raceE.getRace();
+				arena = race.getArena();
+				makeFrame();
+				nofRacers = 0;
+				racers = new ArrayList<Racer>();
+				//try adding racers to arena
+				try {
+				for(int i =0;i<nof_racers;i++) {
+					Racer tempRacer = race.getRacers().get(i);
+					arena.addRacer(tempRacer);
+					nofRacers++;
+					racers.add(tempRacer);
+					addRacerIcon();
+				}
+				}
+				catch (RacerLimitException ex) {
+					System.out.println("[Error] " + ex.getMessage());
+					JOptionPane.showMessageDialog(this, ex.getMessage());
+				} catch (RacerTypeException ex) {
+					System.out.println("[Error] " + ex.getMessage());
+					JOptionPane.showMessageDialog(this, ex.getMessage());
+				}
+				arenaBuilt = true;
+				raceFinished = false;
+			} catch (ClassNotFoundException | NoSuchMethodException | SecurityException | InstantiationException
+					| IllegalAccessException | IllegalArgumentException | InvocationTargetException e1) {
+				System.out.println("Unable to build arena!");
+			}		
 	}
 	
 	/**
@@ -319,6 +408,11 @@ class raceFrame extends JFrame implements ActionListener {
 			return;
 		}
 		raceStarted = true;
+		arena.setStartTime(System.currentTimeMillis());
+		
+		/**
+		 * Thread that updates racers on the gui according to their location until the race is finished
+		 */
 		(new Thread() {
 				public void run() {
 					while (arena.hasActiveRacers()) {
@@ -334,17 +428,34 @@ class raceFrame extends JFrame implements ActionListener {
 				}
 			}).start();
 		
-			for (Racer r: arena.getActiveRacers()) {
+			/**
+			 * a Daemon thread to sort racers by distance
+			 * Note: uses thread-safe functions to sort
+			 */
+			Thread sortThread = new Thread(new Runnable() {
+	            @Override
+	            public void run() {
+	            	// Sort the racers by placement
+	            	while(arena.hasActiveRacers()) {
+	            		arena.sortActiveRacers();
+	            		arena.sortDisabledRacers();
+	            	}
+	            }
+	        });
+	        sortThread.setDaemon(true);
+	        
+			for (Racer r: racers) {
 				new Thread(r).start();
 			}
-		
+			
+			sortThread.start();
 	}
 	
 	/**
 	 *This method is called when the user clicks the "Show info" button
 	 *It checks if the arena has been built and racers have been added, if not, it displays an error message and returns
 	 *If all requirements are met, it creates a table that displays information about each racer, such as name, current speed
-	 *maximum speed, current location, and whether or not the racer has finished the race
+	 *maximum speed, current location, whether or not the racer has finished the race or failed the race, and placement
 	 */
 	private void showInfo() {
 		if (!arenaBuilt) {
@@ -357,22 +468,37 @@ class raceFrame extends JFrame implements ActionListener {
 		}
 		String[][]data = new String[maxRacers][INFO_COLUMNS];
 		int i = 0;
-		for (Racer racer : arena.getCompletedRacers()) {
-			data[i][0] = racer.getName();
-			data[i][1] = "" + racer.getCurrentSpeed();
-			data[i][2] = "" + racer.getMaxSpeed();
-			data[i][3] = "" + racer.getCurrentLocation().getX();
-			data[i][4] = "Yes";
-			i++;
-		}
+		
+			for (Racer racer : arena.getCompletedRacers()) {
+				data[i][0] = racer.getName();
+				data[i][1] = "" + racer.getCurrentSpeed();
+				data[i][2] = "" + racer.getMaxSpeed();
+				data[i][3] = "" + racer.getCurrentLocation().getX();
+				data[i][4] = "Yes";
+				data[i][5] = "" + (i+1);
+				i++;
+			}
 
-		for (Racer racer : arena.getActiveRacers()) {
-			data[i][0] = racer.getName();
-			data[i][1] = "" + racer.getCurrentSpeed();
-			data[i][2] = "" + racer.getMaxSpeed();
-			data[i][3] = "" + racer.getCurrentLocation().getX();
-			data[i][4] = "No";
-			i++;
+		synchronized(arena.getActiveRacers()) {
+			for (Racer racer : arena.getActiveRacers()) {
+				data[i][0] = racer.getName();
+				data[i][1] = "" + racer.getCurrentSpeed();
+				data[i][2] = "" + racer.getMaxSpeed();
+				data[i][3] = "" + racer.getCurrentLocation().getX();
+				data[i][4] = "No";
+				i++;
+			}
+		}
+		
+		synchronized(arena.getDisabledRacers()) {
+			for (Racer racer : arena.getDisabledRacers()) {
+				data[i][0] = racer.getName();
+				data[i][1] = "" + racer.getCurrentSpeed();
+				data[i][2] = "" + racer.getMaxSpeed();
+				data[i][3] = "" + racer.getCurrentLocation().getX();
+				data[i][4] = "Failed";
+				i++;	
+			}
 		}
 		
 		JFrame infoF = new JFrame("Racers information");
@@ -383,9 +509,8 @@ class raceFrame extends JFrame implements ActionListener {
 		// adjust it according to the user's screen resolution
 		int infoHeight = Math.max((maxRacers*20), 220);
 		infoF.setBounds(dimension.width / 2 - 250, dimension.height / 2 - infoHeight/2, 500, infoHeight);
-		
-		String[] columnNames = { "Racer name", "Current speed", "Max speed", "Current X location", "Finished" };
-		JTable table = new JTable(data,columnNames);
+		String[] columnNames = { "Racer name", "Current speed", "Max speed", "Current X location", "Finished", "Placement"};
+		JTable table = new JTable(data, columnNames);
 		JScrollPane sp = new JScrollPane(table);
 		sp.setBounds(10,10,460,Math.max(155, (int)(maxRacers*17.2)));
 		infoF.setLayout(null);
@@ -481,6 +606,11 @@ class raceFrame extends JFrame implements ActionListener {
 		
 	}
 	
+	/**
+	 * Copies a racer by allowing the user to select a racer from the existing racers in the arena and create a copy with a new color and serial number
+	 * It validates the race and arena state conditions, opens a dialog window for racer selection and color choice, and performs the necessary operations to copy and add the racer to the arena
+	 * If successful, the copied racer is added to the racers list and an icon is displayed
+	 */
 	private void copyRacers() {
 		if (arenaBuilt == false) {
 			JOptionPane.showMessageDialog(this, "Please build an arena first!");
@@ -530,12 +660,16 @@ class raceFrame extends JFrame implements ActionListener {
         		col = colorToEnum(combo_c.getSelectedItem().toString());
         		int racerIndex = combo_r.getSelectedIndex();
         		try {
-        			Racer copiedRacer = vehicleWS.cloneVehicle(racers.get(racerIndex), col);
+        			//clone the racer
+        			Racer copiedRacer = vehicleWS.cloneVehicle(racers.get(racerIndex));
+        			//paint the vehicle
+        			vehicleWS.paintVehicle(copiedRacer, col);
+        			
+        			//add racer to arena and show on gui
         			arena.addRacer(copiedRacer);
         			racers.add(copiedRacer);
         			nofRacers++;
         			addRacerIcon();
-        			JOptionPane.showMessageDialog(null, "Racer Copied!");
         		} catch (RacerLimitException ex) {
         			System.out.println("[Error] " + ex.getMessage());
         			JOptionPane.showMessageDialog(null, ex.getMessage());
@@ -543,20 +677,12 @@ class raceFrame extends JFrame implements ActionListener {
         			System.out.println("[Error] " + ex.getMessage());
         			JOptionPane.showMessageDialog(null, ex.getMessage());
         		}
-            	
-                
             }
         });
 		button.setBounds(10, 110, 100, 30);
-		copyF.add(button);
-		
+		copyF.add(button);	
 		copyF.setLayout(null);
 		copyF.setVisible(true);
-		
-		/*
-			 * else if (text_rName.getText().equals("")) {
-			 * JOptionPane.showMessageDialog(this, "Racer name can't be empty!"); return; }
-			 */
 	}
 
 	/**
@@ -578,16 +704,8 @@ class raceFrame extends JFrame implements ActionListener {
 		} else {
 			maxRacers = mRacers;
 			try {
-				switch (combo_arenas.getSelectedItem().toString()) {
-				case "AerialArena":
-					arena = builder.buildArena("game.arenas.air.AerialArena", length, maxRacers);
-					break;
-				case "LandArena":
-					arena = builder.buildArena("game.arenas.land.LandArena", length, maxRacers);
-					break;
-				case "NavalArena":
-					arena = builder.buildArena("game.arenas.naval.NavalArena", length, maxRacers);
-				}
+				
+				arena = AF.createArena(combo_arenas.getSelectedItem().toString(),length,maxRacers);
 				makeFrame();
 				nofRacers = 0;
 				racers = new ArrayList<Racer>();
@@ -627,6 +745,11 @@ class raceFrame extends JFrame implements ActionListener {
 		setSize(windowWidth,windowHeight+nofRacers);
 	}
 	
+	/**
+	 *Converts a color string representation to a Color enum value
+	 *@param color The color string to convert
+	 *@return The Color enum value corresponding to the given color string, or null if no match is found
+	 */
 	private Color colorToEnum(String color) {
 		Color col = null;
 		switch (color) {

@@ -1,12 +1,10 @@
 /**
  * @author Noam Karasso
- * @id 209406867
  */
 
 package game.racers.air;
 
 import game.racers.Racer;
-import game.racers.Wheeled;
 import utilities.EnumContainer.Color;
 
 /**
@@ -39,10 +37,18 @@ public class Helicopter extends Racer implements AerialRacer {
 		super(CLASS_NAME + " #" + getSerial(), DEFAULT_MAX_SPEED, DEFAULT_ACCELERATION, DEFAULT_color);
 	}
 	
+	/**
+	 * Constructs a new Helicopter object by copying the attributes of another Helicopter
+	 * @param other the Helicopter object to copy
+	 */
 	public Helicopter(Helicopter other) {
 		super(other);
 	}
 	
+	/**
+	 * Creates and returns a deep copy of this Helicopter object
+	 * @return a new Helicopter object that is a copy of this instance
+	 */
 	public Helicopter clone() {
 		return new Helicopter(this);
 	}

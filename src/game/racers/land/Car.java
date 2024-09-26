@@ -1,6 +1,5 @@
 /**
  * @author Noam Karasso
- * @id 209406867
  */
 
 package game.racers.land;
@@ -46,12 +45,20 @@ public class Car extends Racer implements LandRacer {
 		setEngine(Engine.FOURSTROKE);
 	}
 
+	/**
+	 * Constructs a new Car object by copying the attributes of another Car
+	 * @param other the Car object to copy
+	 */
 	public Car(Car other) {
 		super(other);
 		wheeled = new Wheeled(other.wheeled.getNumOfWheels());
 		setEngine(other.getEngine());
 	}
 	
+	/**
+	 * Creates and returns a deep copy of this Car object
+	 * @return a new Car object that is a copy of this instance
+	 */
 	public Car clone() {
 		return new Car(this);
 	}

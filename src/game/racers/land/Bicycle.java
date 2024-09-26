@@ -1,13 +1,11 @@
 /**
  * @author Noam Karasso
- * @id 209406867
  */
 
 package game.racers.land;
 
 import game.racers.Racer;
 import game.racers.Wheeled;
-import game.racers.air.Helicopter;
 import utilities.EnumContainer.*;
 
 /**
@@ -48,12 +46,20 @@ public class Bicycle extends Racer implements LandRacer {
 		setType(BicycleType.MOUNTAIN);
 	}
 
+	/**
+	 * Constructs a new Bicycle object by copying the attributes of another Bicycle
+	 * @param other the Bicycle object to copy
+	 */
 	public Bicycle(Bicycle other) {
 		super(other);
 		wheeled = new Wheeled(other.wheeled.getNumOfWheels());
 		setType(other.getType());
 	}
 	
+	/**
+	 * Creates and returns a deep copy of this Bicycle object
+	 * @return a new Bicycle object that is a copy of this instance
+	 */
 	public Bicycle clone() {
 		return new Bicycle(this);
 	}

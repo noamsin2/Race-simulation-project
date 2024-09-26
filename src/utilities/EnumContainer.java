@@ -1,6 +1,5 @@
 /**
  * @author Noam Karasso
- * @id 209406867
  */
 
 package utilities;
@@ -13,11 +12,8 @@ package utilities;
  */
 public class EnumContainer {
 	
-	/**
-	 *will be used more on the third assignment with BROKEN and DISABLED
-	 */
 	public static enum racerState {
-		ACTIVE, COMPLETED
+		ACTIVE, COMPLETED, DISABLED, BROKEN
 	}
 
 	public static enum Color {

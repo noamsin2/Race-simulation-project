@@ -1,6 +1,5 @@
 /**
  * @author Noam Karasso
- * @id 209406867
  */
 
 package game.racers.naval;
@@ -45,12 +44,20 @@ public class SpeedBoat extends Racer implements NavalRacer {
 		setTeam(Team.DOUBLE);
 	}
 	
+	/**
+	 * Constructs a new SpeedBoat object by copying the attributes of another SpeedBoat
+	 * @param other the SpeedBoat object to copy
+	 */
 	public SpeedBoat(SpeedBoat other) {
 		super(other);
 		setType(other.getType());
 		setTeam(other.getTeam());
 	}
 	
+	/**
+	 * Creates and returns a deep copy of this SpeedBoat object
+	 * @return a new SpeedBoat object that is a copy of this instance
+	 */
 	public SpeedBoat clone() {
 		return new SpeedBoat(this);
 	}

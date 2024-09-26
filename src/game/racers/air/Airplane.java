@@ -1,6 +1,5 @@
 /**
  * @author Noam Karasso
- * @id 209406867
  */
 
 package game.racers.air;
@@ -43,11 +42,19 @@ public class Airplane extends Racer implements AerialRacer {
 		wheeled = new Wheeled(DEFAULT_WHEELS);
 	}
 	
+	/**
+	 * Constructs a new Airplane object by copying the attributes of another Airplane
+	 * @param other the Airplane object to copy
+	 */
 	public Airplane(Airplane other) {
 		super(other);
 		wheeled = new Wheeled(other.wheeled.getNumOfWheels());
 	}
 	
+	/**
+	 * Creates and returns a deep copy of this Airplane object
+	 * @return a new Airplane object that is a copy of this instance
+	 */
 	public Airplane clone() {
 		return new Airplane(this);
 	}

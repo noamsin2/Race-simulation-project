@@ -1,6 +1,5 @@
 /**
  * @author Noam Karasso
- * @id 209406867
  */
 package game.racers;
 
@@ -13,6 +12,7 @@ import java.beans.PropertyChangeSupport;
 import javax.swing.ImageIcon;
 
 import game.arenas.Arena;
+import game.racers.states.State;
 import utilities.EnumContainer.*;
 import utilities.Fate;
 import utilities.Mishap;
@@ -20,7 +20,7 @@ import utilities.Mishap;
 /**
  *this is an abstract class that represents a racer in a race game
  */
-public abstract class Racer implements Runnable, Cloneable {
+public abstract class Racer implements Runnable, Cloneable, Comparable<Racer> {
 	private static int serial = 1;
 	private static final int RACER_ICON_SIZE = 65;
 	private int serialNumber;
@@ -31,12 +31,11 @@ public abstract class Racer implements Runnable, Cloneable {
 	private double maxSpeed;
 	private double acceleration;
 	private double currentSpeed;
-	private double failureProbability;
 	private Color color;
 	private Mishap mishap;
 	private ImageIcon icon;
 	private PropertyChangeSupport support; 
-	private racerState state;
+	private State state;
 	
 	/**
 	 * constructor method that creates a new Racer object with the given name, maximum speed, acceleration, and color
@@ -57,8 +56,11 @@ public abstract class Racer implements Runnable, Cloneable {
 		support = new PropertyChangeSupport(this);
 	}
 	
+	/**
+	 * Creates a new instance of Racer by copying the properties of the specified racer
+	 * @param other the racer to be copied
+	 */
 	public Racer(Racer other) {
-		setSerialNumber(serial++);
 		setCurrentSpeed(0);
 		setMishap(null);
 		setName(other.getName());
@@ -70,6 +72,7 @@ public abstract class Racer implements Runnable, Cloneable {
 	}
 	
     public abstract Racer clone();
+    
 	/**
 	 * Adds a property change listener to the underlying support object in a thread-safe manner
 	 * @param pcl The property change listener to be added
@@ -97,6 +100,16 @@ public abstract class Racer implements Runnable, Cloneable {
 	}
 	
 	/**
+	 * Compares this racer with the specified racer for based on their current location's X-coordinate
+	 * @param Racer object, the racer to be compared
+	 * @return a negative integer, zero, or a positive integer if this racer's current X-coordinate
+	 * is less than, equal to, or greater than the specified racer's current X-coordinate
+	 */
+	public int compareTo(Racer other) {
+		return Double.compare(other.getCurrentLocation().getX(), this.getCurrentLocation().getX());
+	}
+	
+	/**
 	*Retrieves the icon of the racer
 	*@return The ImageIcon representing the racer's icon
 	*/
@@ -111,7 +124,7 @@ public abstract class Racer implements Runnable, Cloneable {
 	 * @param finish: a private Point field that represents the finish point of the race
 	 */
 	public void initRace(Arena arena, Point start, Point finish) {
-		setState(racerState.ACTIVE);
+		state = new State();
 		addPropertyChangeListener(arena);
 		setArena(arena);
 		setCurrentLocation(start);
@@ -136,11 +149,8 @@ public abstract class Racer implements Runnable, Cloneable {
 				e.printStackTrace();
 			}
 		}
-		this.setCurrentLocation(new Point(arena.getLength(),currentLocation.getY()));
 		
-		racerState newState = racerState.COMPLETED; 
-		support.firePropertyChange("racerState", getState(), newState); 
-		setState(newState);
+		support.firePropertyChange("racerState", state.getState(), racerState.COMPLETED); 
 	}
 	
 	/**
@@ -148,7 +158,7 @@ public abstract class Racer implements Runnable, Cloneable {
 	 *@return True if the racer has not crossed the finish line, false otherwise
 	 */
 	private boolean isRacing() {
-		if(getCurrentLocation().getX() >= getFinish().getX())
+		if(getCurrentLocation().getX() >= getFinish().getX() || state.getState() == racerState.DISABLED)
 			return false;
 		return true;
 	}
@@ -157,15 +167,19 @@ public abstract class Racer implements Runnable, Cloneable {
 	 * a method that calculates the racer's new location based on its current speed, acceleration, and friction
 	 * It also checks if the racer has a mishap and updates its current speed accordingly
 	 * @param friction: The amount of friction on the surface of the arena that affects the racer's movement
-	 * @return the current location of the racer after moving
 	 */
-	public Point move(double friction) {
+	public void move(double friction) {
 		//first check if there is a mishap if not there is a chance to generate a new mishap 
 		if (!hasMishap()) {
+			support.firePropertyChange("racerState", state.getState(), racerState.ACTIVE); 
 			setMishap(null);
 			if (Fate.breakDown()) {
 				setMishap(Fate.generateMishap());
-				System.out.println(this.getName() + " Has a new mishap! "+mishap.toString());
+				support.firePropertyChange("racerState", state.getState(), racerState.BROKEN);
+				if(!this.getMishap().getFixable() && Fate.disable()) {
+					support.firePropertyChange("racerState", state.getState(), racerState.DISABLED);
+					return;
+				}
 			}
 		}
 		if (hasMishap()) {
@@ -181,8 +195,7 @@ public abstract class Racer implements Runnable, Cloneable {
 		}
 		
 		//update location according to speed
-		currentLocation.setX(getCurrentLocation().getX() + getCurrentSpeed());
-		return getCurrentLocation();
+		currentLocation.setX(Math.min(getFinish().getX(),currentLocation.getX() + getCurrentSpeed()));
 	}
 
 	/**
@@ -222,20 +235,10 @@ public abstract class Racer implements Runnable, Cloneable {
 	}
 	
 	/**
-	 *Sets the state of the racer
-	 *@param state: The racer state to be set
-	 *@return True if the state is successfully set, which is always
-	 */
-	public boolean setState(racerState state) {
-		this.state = state;
-		return true;
-	}
-	
-	/**
 	 *Retrieves the state of the racer
 	 *@return The current racer state
 	 */
-	public racerState getState() {
+	public State getState() {
 		return this.state;
 	}
 	
@@ -244,7 +247,7 @@ public abstract class Racer implements Runnable, Cloneable {
 	 * @param serialNumber: the serial number to assign to the racer
 	 * @return true, since it's always set successfully
 	 */
-	private boolean setSerialNumber(int serialNumber) {
+	public boolean setSerialNumber(int serialNumber) {
 		this.serialNumber = serialNumber;
 		return true;
 	}
@@ -314,16 +317,6 @@ public abstract class Racer implements Runnable, Cloneable {
 	 */
 	private boolean setCurrentSpeed(double currentSpeed) {
 		this.currentSpeed = currentSpeed;
-		return true;
-	}
-
-	/**
-	 * a private method that sets the racer's failure probability
-	 * @param failureProbability: the failure probability of the racer
-     * @return true, since it's always set successfully
-	 */
-	private boolean setFailureProbability(double failureProbability) {
-		this.failureProbability = failureProbability;
 		return true;
 	}
 
@@ -412,14 +405,6 @@ public abstract class Racer implements Runnable, Cloneable {
 	}
 
 	/**
-	 * a private method that returns the probability of the racer encountering a mishap.
-	 * @return a double representing the probability that the Racer will experience a failure
-	 */
-	private double getFailureProbability() {
-		return this.failureProbability;
-	}
-
-	/**
 	 * a private method that returns the color of the racer's vehicle
 	 * @return a Color object representing the color of the Racer
 	 */
@@ -439,7 +424,10 @@ public abstract class Racer implements Runnable, Cloneable {
 	 * a protected method that returns the serial number of the racer
 	 * @return: an integer representing the serial number of the Racer.
 	 */
-	protected static int getSerial() {
+	public static int getSerial() {
 		return serial;
+	}
+	public static void increaseSerial() {
+		serial++;
 	}
 }

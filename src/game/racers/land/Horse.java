@@ -1,12 +1,10 @@
 /**
  * @author Noam Karasso
- * @id 209406867
  */
 
 package game.racers.land;
 
 import game.racers.Racer;
-import game.racers.Wheeled;
 import utilities.EnumContainer.*;
 
 /**
@@ -45,11 +43,19 @@ public class Horse extends Racer implements LandRacer {
 		setBreed(Breed.THOROUGHBRED);
 	}
 
+	/**
+	 * Constructs a new Horse object by copying the attributes of another Horse
+	 * @param other the Horse object to copy
+	 */
 	public Horse(Horse other) {
 		super(other);
 		setBreed(other.getBreed());
 	}
 	
+	/**
+	 * Creates and returns a deep copy of this Horse object
+	 * @return a new Horse object that is a copy of this instance
+	 */
 	public Horse clone() {
 		return new Horse(this);
 	}

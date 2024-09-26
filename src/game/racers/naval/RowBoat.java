@@ -1,12 +1,10 @@
 /**
  * @author Noam Karasso
- * @id 209406867
  */
 
 package game.racers.naval;
 
 import game.racers.Racer;
-import game.racers.land.Horse;
 import utilities.EnumContainer.*;
 
 /**
@@ -46,12 +44,20 @@ public class RowBoat extends Racer implements NavalRacer {
 		setTeam(Team.DOUBLE);
 	}
 
+	/**
+	 * Constructs a new RowBoat object by copying the attributes of another RowBoat
+	 * @param other the RowBoat object to copy
+	 */
 	public RowBoat(RowBoat other) {
 		super(other);
 		setType(other.getType());
 		setTeam(other.getTeam());
 	}
 	
+	/**
+	 * Creates and returns a deep copy of this RowBoat object
+	 * @return a new RowBoat object that is a copy of this instance
+	 */
 	public RowBoat clone() {
 		return new RowBoat(this);
 	}

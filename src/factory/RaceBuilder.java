@@ -1,6 +1,5 @@
 /**
  * @author Noam Karasso
- * @id 209406867
  */
 
 package factory;
@@ -59,8 +58,29 @@ public class RaceBuilder {
 		this.classObject = classLoader.loadClass(arenaType);
 		this.constructor = classObject.getConstructor(double.class, int.class);
 		return (Arena) this.constructor.newInstance(length, maxRacers);
+	}
+	
+	/**
+	 * builds a default arena using user's input as parameters
+	 * @param arenaType: type of arena (NavalArena, LandArena, AerialArena, etc..)
+	 * @return Arena object
+	 * @throws ClassNotFoundException: invalid class
+	 * @throws NoSuchMethodException: invalid method
+	 * @throws SecurityException
+	 * @throws InstantiationException
+	 * @throws IllegalAccessException
+	 * @throws IllegalArgumentException
+	 * @throws InvocationTargetException
+	 */
+	public Arena buildArena(String arenaType)
+			throws ClassNotFoundException, NoSuchMethodException, SecurityException, InstantiationException,
+			IllegalAccessException, IllegalArgumentException, InvocationTargetException {
+		this.classObject = classLoader.loadClass(arenaType);
+		this.constructor = classObject.getConstructor();
+		return (Arena) this.constructor.newInstance();
 
 	}
+	
 	/**
 	 * builds the non wheeled racer using user's input as parameters
 	 * @param racerType: type of racer(horse, helicopter, rowboat, etc..)
